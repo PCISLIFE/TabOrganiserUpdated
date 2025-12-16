@@ -27,9 +27,20 @@ Return ONLY valid JSON in this exact format:
 
 Available colors: grey, blue, red, yellow, green, pink, purple, cyan, orange`
 
+function sanitizeUrl(url: string): string {
+  try {
+    const parsed = new URL(url)
+    const pathSegments = parsed.pathname.split("/").filter(Boolean)
+    const firstPath = pathSegments.length > 0 ? `/${pathSegments[0]}` : ""
+    return `${parsed.origin}${firstPath}`
+  } catch {
+    return url
+  }
+}
+
 function buildUserPrompt(tabs: TabInfo[]): string {
   const tabList = tabs
-    .map((t) => `ID: ${t.id} | Title: "${t.title}" | URL: ${t.url}`)
+    .map((t) => `ID: ${t.id} | Title: "${t.title}" | URL: ${sanitizeUrl(t.url)}`)
     .join("\n")
   return `Organize these tabs:\n\n${tabList}`
 }
