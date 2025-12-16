@@ -1,0 +1,37 @@
+{
+  "name": "tab-organizer",
+  "displayName": "Tab Organizer",
+  "version": "1.0.0",
+  "description": "AI-powered tab organization",
+  "scripts": {
+    "dev": "plasmo dev",
+    "build": "plasmo build"
+  },
+  "packageManager": "pnpm@10.24.0",
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.561.0",
+    "plasmo": "^0.90.5",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "tailwind-merge": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.32",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.23",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3"
+  },
+  "manifest": {
+    "permissions": ["tabs", "tabGroups", "storage"],
+    "host_permissions": ["<all_urls>"],
+    "options_ui": {
+      "page": "options.html",
+      "open_in_tab": true
+    }
+  }
+}
