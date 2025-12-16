@@ -25,6 +25,15 @@ const handler: PlasmoMessaging.MessageHandler<OrganizeRequest, OrganizeResponse>
   }
 
   try {
+    // Validate API configuration
+    if (!settings.apiKey || !settings.apiEndpoint) {
+      return res.send({
+        success: false,
+        error: "Please configure API settings in the extension options",
+        debug: debugLog
+      })
+    }
+
     onDebug("Starting organization...")
 
     // Step 1: Get all tabs

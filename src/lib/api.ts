@@ -44,7 +44,12 @@ function parseResponse(text: string, validTabIds: Set<number>): TabGroup[] {
     jsonStr = codeBlockMatch[1].trim()
   }
 
-  const parsed: AIResponse = JSON.parse(jsonStr)
+  let parsed: AIResponse
+  try {
+    parsed = JSON.parse(jsonStr)
+  } catch {
+    throw new Error("AI returned invalid JSON. Try again or enable debug mode.")
+  }
 
   if (!parsed.groups || !Array.isArray(parsed.groups)) {
     throw new Error("Invalid response: missing groups array")
@@ -90,7 +95,15 @@ export async function organizeTabsWithAI(
   if (!response.ok) {
     const errorText = await response.text()
     onDebug?.(`Error: ${response.status} - ${errorText}`)
-    throw new Error(`API error: ${response.status} - ${errorText}`)
+    // Don't expose full error details to UI - may contain sensitive info
+    const statusMessages: Record<number, string> = {
+      401: "Invalid API key",
+      403: "Access denied - check API key permissions",
+      429: "Rate limited - please wait and try again",
+      500: "API server error - try again later",
+      503: "API service unavailable - try again later"
+    }
+    throw new Error(statusMessages[response.status] || `API error: ${response.status}`)
   }
 
   const data = await response.json()

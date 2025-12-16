@@ -12,14 +12,21 @@ export async function getAllTabs(): Promise<TabInfo[]> {
 }
 
 export async function ungroupAllTabs(): Promise<void> {
-  const groups = await chrome.tabGroups.query({ windowId: chrome.windows.WINDOW_ID_CURRENT })
-  for (const group of groups) {
-    const tabs = await chrome.tabs.query({ groupId: group.id })
-    for (const tab of tabs) {
-      if (tab.id) {
-        await chrome.tabs.ungroup(tab.id)
-      }
-    }
+  const currentWindow = await chrome.windows.getCurrent()
+  const groups = await chrome.tabGroups.query({ windowId: currentWindow.id })
+
+  // Collect all tab IDs from all groups in parallel
+  const tabsPerGroup = await Promise.all(
+    groups.map(group => chrome.tabs.query({ groupId: group.id }))
+  )
+  const tabIds = tabsPerGroup
+    .flat()
+    .map(tab => tab.id)
+    .filter((id): id is number => id !== undefined)
+
+  // Ungroup all tabs at once
+  if (tabIds.length > 0) {
+    await chrome.tabs.ungroup(tabIds)
   }
 }
 
