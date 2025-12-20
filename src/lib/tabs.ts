@@ -24,15 +24,39 @@ export async function ungroupAllTabs(): Promise<void> {
     .map(tab => tab.id)
     .filter((id): id is number => id !== undefined)
 
-  // Ungroup all tabs at once
+  // Ungroup all tabs at once, ignoring errors from closed tabs
   if (tabIds.length > 0) {
-    await chrome.tabs.ungroup(tabIds)
+    try {
+      await chrome.tabs.ungroup(tabIds)
+    } catch {
+      // Some tabs may have been closed - ungroup remaining one by one
+      for (const tabId of tabIds) {
+        try {
+          await chrome.tabs.ungroup(tabId)
+        } catch {
+          // Tab no longer exists, skip
+        }
+      }
+    }
   }
 }
 
 export interface CreateGroupsOptions {
   collapseOthers?: boolean
   activeTabId?: number
+}
+
+async function filterExistingTabs(tabIds: number[]): Promise<number[]> {
+  const existing: number[] = []
+  for (const tabId of tabIds) {
+    try {
+      await chrome.tabs.get(tabId)
+      existing.push(tabId)
+    } catch {
+      // Tab no longer exists
+    }
+  }
+  return existing
 }
 
 export async function createTabGroups(
@@ -42,20 +66,27 @@ export async function createTabGroups(
   const { collapseOthers = false, activeTabId } = options
 
   for (const group of groups) {
-    if (group.tabIds.length === 0) continue
+    // Filter out tabs that may have been closed
+    const validTabIds = await filterExistingTabs(group.tabIds)
+    if (validTabIds.length === 0) continue
 
-    const groupId = await chrome.tabs.group({ tabIds: group.tabIds })
+    try {
+      const groupId = await chrome.tabs.group({ tabIds: validTabIds })
 
-    // Determine if this group should be collapsed
-    // If collapseOthers is enabled, collapse all groups except the one containing the active tab
-    const containsActiveTab = activeTabId !== undefined && group.tabIds.includes(activeTabId)
-    const shouldCollapse = collapseOthers && !containsActiveTab
+      // Determine if this group should be collapsed
+      // If collapseOthers is enabled, collapse all groups except the one containing the active tab
+      const containsActiveTab = activeTabId !== undefined && validTabIds.includes(activeTabId)
+      const shouldCollapse = collapseOthers && !containsActiveTab
 
-    await chrome.tabGroups.update(groupId, {
-      title: group.name,
-      color: group.color,
-      collapsed: shouldCollapse
-    })
+      await chrome.tabGroups.update(groupId, {
+        title: group.name,
+        color: group.color,
+        collapsed: shouldCollapse
+      })
+    } catch {
+      // Group creation failed (tabs may have been closed between check and group)
+      // Continue with remaining groups
+    }
   }
 }
 
