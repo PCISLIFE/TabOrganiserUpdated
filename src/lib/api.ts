@@ -1,11 +1,13 @@
 import type { Settings, TabInfo, AIResponse, TabGroup } from "./types"
 
-const SYSTEM_PROMPT = `You are a browser tab organizer. Analyze tabs and organize them into logical groups.
+const SYSTEM_PROMPT = `You are a browser tab organizer. Create precise, task-focused groups.
 
 Guidelines:
-- Group by task/purpose, not by domain
-- ALWAYS prefix group names with a relevant emoji
-- Use descriptive names based on content
+- Create SPECIFIC groups (e.g. "🛠️ React Debugging" not "💻 Development")
+- Prefer more smaller groups over fewer large ones
+- Split by distinct tasks/topics, even within same domain
+- Max 6-8 tabs per group - split larger sets by subtask
+- ALWAYS prefix names with relevant emoji
 - Every tab must be in exactly one group
 
 Return ONLY valid JSON:
