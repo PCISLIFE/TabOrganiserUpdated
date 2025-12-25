@@ -70,6 +70,12 @@ pnpm build
 - [Tailwind CSS](https://tailwindcss.com/) - Styling
 - [TypeScript](https://www.typescriptlang.org/) - Type safety
 
+## Privacy
+
+See [PRIVACY_POLICY.md](PRIVACY_POLICY.md) for details on data handling.
+
+**TL;DR**: No data collection. Tab info is only sent to your configured API endpoint.
+
 ## License
 
 MIT
