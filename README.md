@@ -1,6 +1,10 @@
 # Tab Organizer
 
-AI-powered Chrome extension that automatically organizes your browser tabs into logical groups.
+A simple Chrome extension that automatically organizes your browser tabs into logical groups. [Get on Chrome Web Store](https://chromewebstore.google.com/detail/hfmbpiclobiljhgecpghmgjpdfecoacp)
+
+## Demo
+
+https://github.com/user-attachments/assets/fe4dd323-b359-41a7-a9b8-2bd724a5f9cd
 
 <p align="center">
   <img src="docs/media/promo-organize.png" alt="One-click tab organization" width="640">
@@ -9,10 +13,6 @@ AI-powered Chrome extension that automatically organizes your browser tabs into 
 <p align="center">
   <img src="docs/media/promo-settings.png" alt="Bring your own API key" width="640">
 </p>
-
-## Demo
-
-https://github.com/user-attachments/assets/fe4dd323-b359-41a7-a9b8-2bd724a5f9cd
 
 ## Features
 
