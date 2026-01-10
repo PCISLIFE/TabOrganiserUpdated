@@ -92,6 +92,97 @@ function buildUserPrompt(tabs: TabInfo[]): string {
 
 const VALID_COLORS = ["grey", "blue", "red", "yellow", "green", "pink", "purple", "cyan", "orange"] as const
 
+/**
+ * Intelligently assigns colors based on group name and category keywords
+ */
+function assignSmartColor(groupName: string, suggestedColor?: string): chrome.tabGroups.ColorEnum {
+  const name = groupName.toLowerCase()
+  
+  // If AI suggested a valid color, use it
+  if (suggestedColor && VALID_COLORS.includes(suggestedColor as any)) {
+    return suggestedColor as chrome.tabGroups.ColorEnum
+  }
+  
+  // Category-based color mapping
+  const colorMap: Record<string, chrome.tabGroups.ColorEnum> = {
+    // Work & productivity
+    work: "blue",
+    job: "blue",
+    office: "blue",
+    project: "blue",
+    meeting: "blue",
+    email: "blue",
+    task: "blue",
+    
+    // Development & tech
+    code: "purple",
+    dev: "purple",
+    debug: "purple",
+    github: "purple",
+    programming: "purple",
+    api: "purple",
+    tech: "purple",
+    
+    // Social & communication
+    social: "pink",
+    chat: "pink",
+    message: "pink",
+    slack: "pink",
+    discord: "pink",
+    twitter: "pink",
+    facebook: "pink",
+    
+    // Shopping & commerce
+    shop: "red",
+    buy: "red",
+    cart: "red",
+    store: "red",
+    amazon: "red",
+    purchase: "red",
+    
+    // Media & entertainment
+    video: "orange",
+    watch: "orange",
+    youtube: "orange",
+    stream: "orange",
+    movie: "orange",
+    music: "orange",
+    
+    // Learning & research
+    learn: "green",
+    study: "green",
+    read: "green",
+    research: "green",
+    doc: "green",
+    article: "green",
+    wiki: "green",
+    course: "green",
+    
+    // Reference & tools
+    reference: "cyan",
+    tool: "cyan",
+    utility: "cyan",
+    resource: "cyan",
+    
+    // Finance & banking
+    finance: "yellow",
+    bank: "yellow",
+    money: "yellow",
+    invest: "yellow",
+    crypto: "yellow"
+  }
+  
+  // Check for keyword matches
+  for (const [keyword, color] of Object.entries(colorMap)) {
+    if (name.includes(keyword)) {
+      return color
+    }
+  }
+  
+  // Default to grey if no match
+  return "grey"
+}
+
 function parseResponse(text: string, mapping: TabMapping): TabGroup[] {
   if (!text || typeof text !== "string") {
     throw new Error("Invalid response: empty or non-string content")
@@ -128,9 +219,11 @@ function parseResponse(text: string, mapping: TabMapping): TabGroup[] {
       throw new Error(`Invalid group at index ${idx}`)
     }
     
+    const groupName = group.name || "Unnamed"
+    
     return {
-      name: group.name || "Unnamed",
-      color: VALID_COLORS.includes(group.color as any) ? group.color : "grey",
+      name: groupName,
+      color: assignSmartColor(groupName, group.color),
       // Map indices back to actual tab IDs, skip any unknown indices
       tabIds: (group.tabIds || [])
         .filter((id): id is number => typeof id === "number")
