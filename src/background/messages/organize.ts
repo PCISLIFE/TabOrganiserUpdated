@@ -1,6 +1,6 @@
 import type { PlasmoMessaging } from "@plasmohq/messaging"
 import { getAllTabs, ungroupAllTabs, createTabGroups } from "~/lib/tabs"
-import { getSettings } from "~/lib/storage"
+import { getSettings, validateSettings } from "~/lib/storage"
 import { organizeTabsWithAI } from "~/lib/api"
 import type { Settings } from "~/lib/types"
 import {
@@ -123,10 +123,11 @@ const handler: PlasmoMessaging.MessageHandler<OrganizeRequest, OrganizeResponse>
   const settings = await getSettings()
 
   // Validate before starting
-  if (!settings.apiKey || !settings.apiEndpoint) {
+  const validation = validateSettings(settings)
+  if (!validation.valid) {
     res.send({
       started: false,
-      error: "Please configure API settings in the extension options"
+      error: validation.error || "Please configure API settings in the extension options"
     })
     return
   }

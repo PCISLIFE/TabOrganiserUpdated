@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { sendToBackground } from "@plasmohq/messaging"
 import type { UngroupResponse } from "~/background/messages/ungroup"
 import type { OrganizeResponse } from "~/background/messages/organize"
@@ -73,7 +73,7 @@ function Popup() {
   }, [taskState.status])
 
   // Handle organize button click (toggle behavior)
-  const handleOrganizeClick = async () => {
+  const handleOrganizeClick = useCallback(async () => {
     if (taskState.status === "running") {
       // Cancel the running task - update storage directly for immediate feedback
       const cancelledState: TaskState = { status: "cancelled", cancelledAt: Date.now() }
@@ -109,9 +109,9 @@ function Popup() {
         setTaskState(errorState)
       }
     }
-  }
+  }, [taskState.status])
 
-  const handleUngroup = async () => {
+  const handleUngroup = useCallback(async () => {
     if (taskState.status === "running") return
 
     try {
@@ -142,13 +142,37 @@ function Popup() {
       await chrome.storage.local.set({ [TASK_STATE_KEY]: errorState })
       setTaskState(errorState)
     }
-  }
+  }, [taskState.status])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Enter or Space to organize/cancel
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault()
+        handleOrganizeClick()
+      }
+      // Escape to cancel if running
+      else if (e.key === "Escape" && taskState.status === "running") {
+        e.preventDefault()
+        handleOrganizeClick()
+      }
+      // 'c' or 'Delete' to clear groups
+      else if ((e.key === "c" || e.key === "Delete") && taskState.status !== "running") {
+        e.preventDefault()
+        handleUngroup()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyPress)
+    return () => window.removeEventListener("keydown", handleKeyPress)
+  }, [handleOrganizeClick, handleUngroup, taskState.status])
 
   // Derive UI state
   const isRunning = taskState.status === "running"
 
-  // Get status display
-  const getStatusDisplay = (): { text: string; color: string } => {
+  // Get status display (memoized to prevent recalculation)
+  const statusDisplay = useMemo((): { text: string; color: string } => {
     switch (taskState.status) {
       case "idle":
         return { text: "Ready to organize", color: "text-zinc-500" }
@@ -166,9 +190,7 @@ function Popup() {
       case "error":
         return { text: taskState.error, color: "text-red-400" }
     }
-  }
-
-  const statusDisplay = getStatusDisplay()
+  }, [taskState])
 
   // Animation state for text transitions
   const [displayText, setDisplayText] = useState("Ready to organize")
@@ -213,6 +235,9 @@ function Popup() {
         <button
           onClick={handleUngroup}
           disabled={isRunning}
+          aria-label="Clear all tab groups"
+          aria-disabled={isRunning}
+          title="Clear all groups (C or Delete)"
           className="h-11 px-3 text-xs font-medium text-zinc-400 bg-zinc-800 rounded-md
                      hover:bg-zinc-700 hover:text-zinc-200 disabled:opacity-50
                      disabled:cursor-not-allowed transition-colors"
@@ -221,6 +246,8 @@ function Popup() {
         </button>
         <button
           onClick={handleOrganizeClick}
+          aria-label={isRunning ? "Cancel organization" : "Organize tabs"}
+          title={isRunning ? "Cancel (Esc)" : "Organize tabs (Enter)"}
           className={`flex-1 h-11 text-sm font-medium rounded-md transition-colors
                       flex items-center justify-center gap-2
                       ${isRunning
@@ -230,7 +257,7 @@ function Popup() {
         >
           {isRunning ? (
             <>
-              <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+              <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
@@ -242,9 +269,14 @@ function Popup() {
         </button>
       </div>
 
-      <div className={`mt-3 px-2 py-2 rounded bg-zinc-900/50 border border-zinc-800 overflow-hidden ${
-        taskState.status === "error" ? "border-red-500/30 bg-red-500/5" : ""
-      }`}>
+      <div 
+        className={`mt-3 px-2 py-2 rounded bg-zinc-900/50 border border-zinc-800 overflow-hidden ${
+          taskState.status === "error" ? "border-red-500/30 bg-red-500/5" : ""
+        }`}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
         <div
           className={`text-xs ${textColor} transition-all duration-150 ${
             isExiting ? "opacity-0 -translate-y-2" : "opacity-100 translate-y-0"
@@ -256,13 +288,18 @@ function Popup() {
         {debugLog.length > 0 && (
           <button
             onClick={() => setShowDebug(!showDebug)}
+            aria-expanded={showDebug}
+            aria-controls="debug-log"
             className="mt-1.5 text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors"
           >
             {showDebug ? "hide debug log" : "show debug log"}
           </button>
         )}
         {showDebug && debugLog.length > 0 && (
-          <pre className="mt-2 p-2 text-[10px] text-zinc-500 bg-black/30 rounded overflow-auto max-h-24 font-mono">
+          <pre 
+            id="debug-log"
+            className="mt-2 p-2 text-[10px] text-zinc-500 bg-black/30 rounded overflow-auto max-h-24 font-mono"
+          >
             {debugLog.join("\n")}
           </pre>
         )}

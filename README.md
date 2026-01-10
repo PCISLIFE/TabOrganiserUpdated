@@ -91,3 +91,27 @@ See [PRIVACY_POLICY.md](PRIVACY_POLICY.md) for details on data handling.
 ## License
 
 MIT
+---
+
+## Recent Improvements
+
+This fork includes comprehensive improvements to the original Tab Organizer:
+
+### Code Quality
+- ✅ Enhanced input validation and error handling
+- ✅ Improved type safety with better null checking
+- ✅ Performance optimizations using React hooks
+- ✅ Comprehensive JSDoc documentation
+
+### User Experience
+- ✅ **Keyboard shortcuts**: Enter to organize, Esc to cancel, C to clear
+- ✅ **Accessibility**: Full screen reader support with ARIA labels
+- ✅ **Quick setup presets**: One-click configuration for OpenAI, Anthropic, X.AI, Google, Ollama, and LM Studio
+- ✅ **Field validation**: Real-time feedback for configuration errors
+
+### Reliability
+- ✅ **Automatic retry**: Smart retry logic with exponential backoff for API failures
+- ✅ **Request timeout**: 60-second timeout prevents hanging requests
+- ✅ **Better error messages**: Clear, actionable feedback when things go wrong
+
+See [IMPROVEMENTS.md](IMPROVEMENTS.md) for detailed documentation of all changes.
