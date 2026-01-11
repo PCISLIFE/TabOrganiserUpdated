@@ -21,6 +21,10 @@ https://github.com/user-attachments/assets/fe4dd323-b359-41a7-a9b8-2bd724a5f9cd
 - **Auto-Collapse**: Optionally collapse all groups except the one containing your active tab
 - **Custom API Support**: Works with OpenAI, or any OpenAI-compatible endpoint (Ollama, LM Studio, etc.)
 - **Debug Mode**: Built-in logging to troubleshoot API issues
+ - **Model Presets**: Quickly pick common models without changing provider
+ - **Quick Settings Access**: Gear button in popup opens Options instantly
+ - **Longer Debug Visibility**: Debug logs persist longer; auto-dismiss pauses when logs are shown
+ - **Prompt on New Tabs**: Optional notification asks to group when new tabs/links open
 
 ## Installation
 
@@ -58,12 +62,14 @@ https://github.com/user-attachments/assets/fe4dd323-b359-41a7-a9b8-2bd724a5f9cd
 3. Optional settings:
    - **Auto-collapse groups**: Collapse all groups except the active one after organizing
    - **Debug mode**: Show detailed logs in the popup
+   - **Model preset**: Choose a model-only preset (e.g., GPT-4o, Gemini variants)
 
 ## Usage
 
 1. Click the extension icon to open the popup
 2. Click **Organize** to group all tabs in the current window
 3. Click **Clear** to remove all tab groups
+4. When a new tab opens, click **Group Now** on the notification to organize automatically (can be dismissed)
 
 ## Development
 
@@ -74,6 +80,18 @@ pnpm dev
 # Build for production
 pnpm build
 ```
+
+### Permissions
+
+This extension requests the following permissions:
+
+- `tabs`, `tabGroups`, `storage` — required for organizing and tracking tab state
+- `notifications` — used to prompt "Group this tab?" when new tabs or links open
+
+### Compatibility Notes
+
+- The **Model Preset** selector sets only the `model` value; provider presets change both `apiEndpoint` and `model`.
+- For OpenAI, use `https://api.openai.com/v1`. For OpenRouter, use `https://openrouter.ai/api/v1`. Local providers: Ollama `http://localhost:11434/v1`, LM Studio `http://localhost:1234/v1`.
 
 ## Tech Stack
 
@@ -108,6 +126,10 @@ This fork includes comprehensive improvements to the original Tab Organizer:
 - ✅ **Accessibility**: Full screen reader support with ARIA labels
 - ✅ **Quick setup presets**: One-click configuration for OpenAI, Anthropic, X.AI, Google, Ollama, and LM Studio
 - ✅ **Field validation**: Real-time feedback for configuration errors
+ - ✅ **Bigger popup logo and Settings button**: Faster access and clearer visuals
+ - ✅ **Model Presets**: Select popular models independently of provider
+ - ✅ **Debug stays longer**: Auto-dismiss is delayed and paused when logs are present
+ - ✅ **New tab prompt**: Optional notifications to group newly opened tabs/links
 
 ### Reliability
 - ✅ **Automatic retry**: Smart retry logic with exponential backoff for API failures
