@@ -4,6 +4,11 @@ import { getSettings } from "~/lib/storage"
 
 console.log('[Tab Organizer] Background script loaded')
 
+// Check notification permission on startup
+chrome.notifications.getPermissionLevel((level) => {
+	console.log('[Tab Organizer] Notification permission level:', level)
+})
+
 // Prompt user to group when new tabs open or navigate to a new URL
 const PROMPT_COOLDOWN_MS = 10000
 let lastPromptAt = 0
@@ -51,7 +56,6 @@ async function maybePromptForTab(tabId: number, url?: string) {
 	lastPromptAt = now
 
 	const notificationId = `group-tab-${tabId}-${now}`
-	const iconUrl = chrome.runtime.getURL("assets/icon.png")
 	const hostname = hostnameFrom(url!)
 
 	console.log(`[Tab Organizer] Creating notification for: ${hostname}`)
@@ -61,7 +65,7 @@ async function maybePromptForTab(tabId: number, url?: string) {
 			type: "basic",
 			title: "Group this tab?",
 			message: hostname,
-			iconUrl,
+			// iconUrl removed - Chrome will use extension's default icon
 			buttons: [
 				{ title: "Group Now" },
 				{ title: "Ignore" }
@@ -75,24 +79,31 @@ async function maybePromptForTab(tabId: number, url?: string) {
 }
 
 chrome.tabs.onCreated.addListener((tab) => {
+	console.log('[Tab Organizer] Tab created event:', tab.id, tab.url)
 	if (tab.id !== undefined) {
 		maybePromptForTab(tab.id, tab.url)
 	}
 })
+console.log('[Tab Organizer] Registered onCreated listener')
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	if (changeInfo.url) {
+		console.log('[Tab Organizer] Tab updated event:', tabId, changeInfo.url)
 		maybePromptForTab(tabId, changeInfo.url)
 	}
 })
+console.log('[Tab Organizer] Registered onUpdated listener')
 
 chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
+	console.log('[Tab Organizer] Notification button clicked:', notificationId, buttonIndex)
 	if (!notificationId.startsWith("group-tab-")) return
 	if (buttonIndex === 0) {
+		console.log('[Tab Organizer] User clicked "Group Now" - starting organize')
 		// Group now via existing AI organize flow
 		startOrganize()
 	}
 	chrome.notifications.clear(notificationId)
 })
+console.log('[Tab Organizer] Registered onButtonClicked listener')
 
 // Plasmo handles message routing automatically via the messages/ directory
