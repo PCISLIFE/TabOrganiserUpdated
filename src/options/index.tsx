@@ -40,6 +40,16 @@ const API_PRESETS = {
 } as const
 
 type PresetKey = keyof typeof API_PRESETS
+// Model-only presets (does not change API endpoint)
+const MODEL_PRESETS = {
+  "OpenAI • GPT-4o": "gpt-4o",
+  "OpenAI • o3-mini-high": "o3-mini-high",
+  "Anthropic • Claude 3.7 Sonnet": "anthropic/claude-3-7-sonnet",
+  "X.AI • Grok-2": "x-ai/grok-2",
+  "Google • Gemini 2.0 (free)": "google/gemini-2.0-pro-exp-02:free",
+  "Ollama • Llama 3.2": "llama3.2",
+  "LM Studio • Local": "local-model"
+} as const
 
 function Options() {
   const [settings, setSettings] = useState<Settings>({
@@ -128,6 +138,12 @@ function Options() {
     setValidationErrors({})
   }
 
+  const applyModelPreset = (model: string) => {
+    setSettings((prev) => ({ ...prev, model }))
+    setError(null)
+    setValidationErrors((prev) => ({ ...prev, model: undefined }))
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#050505] text-zinc-50 flex items-center justify-center p-8">
       <div className="w-full max-w-lg space-y-6">
@@ -181,6 +197,28 @@ function Options() {
               </svg>
               Quickly configure for popular API providers
             </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-2 text-zinc-200 flex items-center gap-2">
+              <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+              Model Preset
+            </label>
+            <select
+              onChange={(e) => e.target.value && applyModelPreset(e.target.value)}
+              defaultValue=""
+              className="w-full h-11 px-3 bg-zinc-800/60 border border-zinc-700/50 rounded-lg text-sm 
+                         focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20
+                         transition-all duration-200 shadow-sm hover:bg-zinc-800"
+            >
+              <option value="" disabled>Select a model preset...</option>
+              {Object.entries(MODEL_PRESETS).map(([label, model]) => (
+                <option key={label} value={model}>{label}</option>
+              ))}
+            </select>
+            <p className="text-xs text-zinc-500 mt-1.5">Pick a common model without changing the provider.</p>
           </div>
 
           <div>
