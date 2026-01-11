@@ -1,5 +1,6 @@
 import { startOrganize } from "~/background/messages/organize"
 import { isRunning } from "~/background/taskManager"
+import { getSettings } from "~/lib/storage"
 
 // Prompt user to group when new tabs open or navigate to a new URL
 const PROMPT_COOLDOWN_MS = 10000
@@ -22,12 +23,21 @@ async function maybePromptForTab(tabId: number, url?: string) {
 	if (!isHttpUrl(url)) return
 	if (await isRunning()) return
 
+	// Check if user has configured settings (has API key)
+	const settings = await getSettings()
+	if (!settings.apiKey || settings.apiKey.trim().length === 0) {
+		console.log("[Tab Organizer] Skipping notification - no API key configured")
+		return
+	}
+
 	const now = Date.now()
 	if (now - lastPromptAt < PROMPT_COOLDOWN_MS) return
 	lastPromptAt = now
 
 	const notificationId = `group-tab-${tabId}-${now}`
 	const iconUrl = chrome.runtime.getURL("assets/icon.png")
+
+	console.log(`[Tab Organizer] Showing notification for: ${hostnameFrom(url!)}`)
 
 	chrome.notifications.create(notificationId, {
 		type: "basic",

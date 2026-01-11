@@ -90,6 +90,7 @@ function Options() {
   const [showKey, setShowKey] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [selectedProvider, setSelectedProvider] = useState<string>("")
   const [validationErrors, setValidationErrors] = useState<{
     apiEndpoint?: string
     apiKey?: string
@@ -163,12 +164,52 @@ function Options() {
     }))
     setError(null)
     setValidationErrors({})
+    // Track which provider was selected for filtering model presets
+    setSelectedProvider(presetKey)
   }
 
   const applyModelPreset = (model: string) => {
     setSettings((prev) => ({ ...prev, model }))
     setError(null)
     setValidationErrors((prev) => ({ ...prev, model: undefined }))
+  }
+
+  // Detect provider from endpoint to filter model presets
+  const detectProvider = (): string => {
+    if (selectedProvider) return selectedProvider
+    const endpoint = settings.apiEndpoint.toLowerCase()
+    if (endpoint.includes('openai.com')) return 'openai'
+    if (endpoint.includes('openrouter')) {
+      // Check model prefix for OpenRouter
+      if (settings.model.startsWith('anthropic')) return 'anthropic'
+      if (settings.model.startsWith('x-ai')) return 'xai'
+      if (settings.model.startsWith('google')) return 'google'
+    }
+    if (endpoint.includes('localhost:11434') || endpoint.includes('ollama')) return 'ollama'
+    if (endpoint.includes('localhost:1234')) return 'lmstudio'
+    return ''
+  }
+
+  // Filter model presets based on selected provider
+  const filteredModelPresets = (): typeof MODEL_PRESETS => {
+    const provider = detectProvider()
+    if (!provider) return MODEL_PRESETS // Show all if no provider detected
+
+    const filtered: Record<string, string> = {}
+    Object.entries(MODEL_PRESETS).forEach(([label, model]) => {
+      const labelLower = label.toLowerCase()
+      if (
+        (provider === 'openai' && labelLower.startsWith('openai')) ||
+        (provider === 'anthropic' && labelLower.startsWith('anthropic')) ||
+        (provider === 'xai' && labelLower.startsWith('x.ai')) ||
+        (provider === 'google' && labelLower.startsWith('google')) ||
+        (provider === 'ollama' && labelLower.startsWith('ollama')) ||
+        (provider === 'lmstudio' && labelLower.startsWith('lm studio'))
+      ) {
+        filtered[label] = model
+      }
+    })
+    return Object.keys(filtered).length > 0 ? filtered as typeof MODEL_PRESETS : MODEL_PRESETS
   }
 
   return (
@@ -241,11 +282,13 @@ function Options() {
                          transition-all duration-200 shadow-sm hover:bg-zinc-800"
             >
               <option value="" disabled>Select a model preset...</option>
-              {Object.entries(MODEL_PRESETS).map(([label, model]) => (
+              {Object.entries(filteredModelPresets()).map(([label, model]) => (
                 <option key={label} value={model}>{label}</option>
               ))}
             </select>
-            <p className="text-xs text-zinc-500 mt-1.5">Pick a common model without changing the provider.</p>
+            <p className="text-xs text-zinc-500 mt-1.5">
+              {detectProvider() ? `Showing ${detectProvider()} models` : 'Pick a common model without changing the provider.'}
+            </p>
           </div>
 
           <div>
