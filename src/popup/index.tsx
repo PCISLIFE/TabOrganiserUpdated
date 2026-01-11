@@ -53,24 +53,26 @@ function Popup() {
     return () => chrome.storage.onChanged.removeListener(handleStorageChange)
   }, [])
 
-  // Auto-dismiss all terminal states after a delay
+  // Auto-dismiss all terminal states after a delay (unless debug is available)
   useEffect(() => {
     const isTerminalState = taskState.status === "completed" ||
                            taskState.status === "error" ||
                            taskState.status === "cancelled"
     if (!isTerminalState) return
 
-    // Different delays: success is quick, errors/cancelled stay longer so user can read
-    const delay = taskState.status === "completed" ? 3000 : 4000
+    // If there are debug logs available or shown, don't auto-dismiss
+    if (debugLog.length > 0 || showDebug) return
+
+    // Longer delays so users can read
+    const delay = taskState.status === "completed" ? 8000 : 6000
 
     const timeout = setTimeout(async () => {
       await chrome.storage.local.set({ [TASK_STATE_KEY]: { status: "idle" } })
       setTaskState({ status: "idle" })
-      setDebugLog([])
     }, delay)
 
     return () => clearTimeout(timeout)
-  }, [taskState.status])
+  }, [taskState.status, debugLog.length, showDebug])
 
   // Handle organize button click (toggle behavior)
   const handleOrganizeClick = useCallback(async () => {
@@ -232,16 +234,28 @@ function Popup() {
   return (
     <div className="w-[320px] bg-gradient-to-b from-[#0f0f0f] to-[#0a0a0a] text-zinc-50 p-4">
       {/* Header */}
-      <div className="mb-4 flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-          <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-sm font-semibold text-zinc-100">Tab Organizer</h1>
+            <p className="text-[11px] text-zinc-500">AI-powered grouping</p>
+          </div>
+        </div>
+        <button
+          onClick={() => chrome.runtime.openOptionsPage()}
+          title="Open settings"
+          aria-label="Open settings"
+          className="h-8 w-8 flex items-center justify-center rounded-lg bg-zinc-800/60 border border-zinc-700/50 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/60 hover:border-zinc-600/50 transition-colors"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.983 4.077a1 1 0 011.034 0l1.2.694a1 1 0 00.886.044l1.26-.504a1 1 0 011.18.424l.744 1.17a1 1 0 00.78.456l1.357.11a1 1 0 01.91.91l.11 1.357a1 1 0 00.456.78l1.17.744a1 1 0 01.424 1.18l-.504 1.26a1 1 0 00.044.886l.694 1.2a1 1 0 010 1.034l-.694 1.2a1 1 0 00-.044.886l.504 1.26a1 1 0 01-.424 1.18l-1.17.744a1 1 0 00-.456.78l-.11 1.357a1 1 0 01-.91.91l-1.357.11a1 1 0 00-.78.456l-.744 1.17a1 1 0 01-1.18.424l-1.26-.504a1 1 0 00-.886.044l-1.2.694a1 1 0 01-1.034 0l-1.2-.694a1 1 0 00-.886-.044l-1.26.504a1 1 0 01-1.18-.424l-.744-1.17a1 1 0 00-.78-.456l-1.357-.11a1 1 0 01-.91-.91l-.11-1.357a1 1 0 00-.456-.78l-1.17-.744a1 1 0 01-.424-1.18l.504-1.26a1 1 0 00-.044-.886l-.694-1.2a1 1 0 010-1.034l.694-1.2a1 1 0 00.044-.886l-.504-1.26a1 1 0 01.424-1.18l1.17-.744a1 1 0 00.456-.78l.11-1.357a1 1 0 01.91-.91l1.357-.11a1 1 0 00.78-.456l.744-1.17a1 1 0 011.18-.424l1.26.504a1 1 0 00.886-.044l1.2-.694zM12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" />
           </svg>
-        </div>
-        <div>
-          <h1 className="text-sm font-semibold text-zinc-100">Tab Organizer</h1>
-          <p className="text-[11px] text-zinc-500">AI-powered grouping</p>
-        </div>
+        </button>
       </div>
 
       {/* Action Buttons */}
