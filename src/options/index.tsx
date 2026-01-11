@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { getSettings, saveSettings, validateSettings, isValidUrl } from "~/lib/storage"
 import type { Settings } from "~/lib/types"
 import { Button } from "~/components/ui/button"
@@ -175,8 +175,11 @@ function Options() {
   }
 
   // Detect provider from endpoint to filter model presets
-  const detectProvider = (): string => {
-    if (selectedProvider) return selectedProvider
+  const currentProvider = useMemo(() => {
+    if (selectedProvider) {
+      console.log('[Options] Using selected provider:', selectedProvider)
+      return selectedProvider
+    }
     const endpoint = settings.apiEndpoint.toLowerCase()
     if (endpoint.includes('openai.com')) return 'openai'
     if (endpoint.includes('openrouter')) {
@@ -188,29 +191,34 @@ function Options() {
     if (endpoint.includes('localhost:11434') || endpoint.includes('ollama')) return 'ollama'
     if (endpoint.includes('localhost:1234')) return 'lmstudio'
     return ''
-  }
+  }, [selectedProvider, settings.apiEndpoint, settings.model])
 
   // Filter model presets based on selected provider
-  const filteredModelPresets = (): typeof MODEL_PRESETS => {
-    const provider = detectProvider()
-    if (!provider) return MODEL_PRESETS // Show all if no provider detected
+  const filteredModelPresets = useMemo(() => {
+    console.log('[Options] Filtering models for provider:', currentProvider)
+    if (!currentProvider) {
+      console.log('[Options] No provider detected, showing all models')
+      return MODEL_PRESETS // Show all if no provider detected
+    }
 
     const filtered: Record<string, string> = {}
     Object.entries(MODEL_PRESETS).forEach(([label, model]) => {
       const labelLower = label.toLowerCase()
       if (
-        (provider === 'openai' && labelLower.startsWith('openai')) ||
-        (provider === 'anthropic' && labelLower.startsWith('anthropic')) ||
-        (provider === 'xai' && labelLower.startsWith('x.ai')) ||
-        (provider === 'google' && labelLower.startsWith('google')) ||
-        (provider === 'ollama' && labelLower.startsWith('ollama')) ||
-        (provider === 'lmstudio' && labelLower.startsWith('lm studio'))
+        (currentProvider === 'openai' && labelLower.startsWith('openai')) ||
+        (currentProvider === 'anthropic' && labelLower.startsWith('anthropic')) ||
+        (currentProvider === 'xai' && labelLower.startsWith('x.ai')) ||
+        (currentProvider === 'google' && labelLower.startsWith('google')) ||
+        (currentProvider === 'ollama' && labelLower.startsWith('ollama')) ||
+        (currentProvider === 'lmstudio' && labelLower.startsWith('lm studio'))
       ) {
         filtered[label] = model
       }
     })
-    return Object.keys(filtered).length > 0 ? filtered as typeof MODEL_PRESETS : MODEL_PRESETS
-  }
+    const result = Object.keys(filtered).length > 0 ? filtered : MODEL_PRESETS
+    console.log('[Options] Filtered to', Object.keys(result).length, 'models')
+    return result as typeof MODEL_PRESETS
+  }, [currentProvider])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#050505] text-zinc-50 flex items-center justify-center p-8">
@@ -276,18 +284,18 @@ function Options() {
             </label>
             <select
               onChange={(e) => e.target.value && applyModelPreset(e.target.value)}
-              defaultValue=""
+              value={""}
               className="w-full h-11 px-3 bg-zinc-800/60 border border-zinc-700/50 rounded-lg text-sm 
                          focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20
                          transition-all duration-200 shadow-sm hover:bg-zinc-800"
             >
               <option value="" disabled>Select a model preset...</option>
-              {Object.entries(filteredModelPresets()).map(([label, model]) => (
+              {Object.entries(filteredModelPresets).map(([label, model]) => (
                 <option key={label} value={model}>{label}</option>
               ))}
             </select>
             <p className="text-xs text-zinc-500 mt-1.5">
-              {detectProvider() ? `Showing ${detectProvider()} models` : 'Pick a common model without changing the provider.'}
+              {currentProvider ? `Showing ${currentProvider.toUpperCase()} models (${Object.keys(filteredModelPresets).length})` : 'Pick a common model without changing the provider.'}
             </p>
           </div>
 
