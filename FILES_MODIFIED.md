@@ -1,6 +1,115 @@
 # Files Modified - Tab Organizer Improvements
 
-## Modified Files (6)
+## Latest Session (2026-01-11)
+
+### Modified Files (6)
+
+#### 1. `src/popup/index.tsx`
+**Changes:**
+- Enlarged logo container (w-10 h-10, was w-8 h-8)
+- Enlarged logo SVG (w-6 h-6, was w-5 h-5)
+- Upgraded logo border radius (rounded-xl, was rounded-lg)
+- Added Settings gear button in header
+- Calls `chrome.runtime.openOptionsPage()` on click
+- Extended auto-dismiss delays (success: 8s, error: 6s)
+- Auto-dismiss paused when debug logs exist or are shown
+- Debug logs no longer cleared on auto-dismiss
+- Improved header layout with justify-between
+
+**Lines Changed:** ~30 lines modified
+
+---
+
+#### 2. `src/options/index.tsx`
+**Changes:**
+- Added `MODEL_PRESETS` constant with 30+ curated models
+- Organized by provider (OpenAI, Google, Anthropic, X.AI, Local)
+- GPT-5 series: 5.2, 5.2 Pro, 5, 5 Mini, 5 Nano
+- GPT-4 series: 4.1, 4o, 4o Mini
+- Reasoning models: o3, o3 Pro, o4 Mini, o3 Mini
+- Gemini 3 series: 3 Pro, 3 Flash
+- Gemini 2.5 series: 2.5 Pro, 2.5 Flash, 2.5 Flash Lite
+- Gemini 2.0 series
+- Added `applyModelPreset()` function
+- Model Preset dropdown UI with purple icon
+- Sets only `model` without changing `apiEndpoint`
+
+**Lines Changed:** ~60 lines added
+
+---
+
+#### 3. `src/background/index.ts`
+**Changes:**
+- Complete rewrite from placeholder to functional background script
+- Added tab creation listener (`chrome.tabs.onCreated`)
+- Added tab update listener (`chrome.tabs.onUpdated`)
+- Added notification button click handler
+- `maybePromptForTab()` function with cooldown logic
+- `isHttpUrl()` and `hostnameFrom()` helper functions
+- 10-second cooldown between notifications
+- Filters non-HTTP URLs and running organize tasks
+- Creates actionable notifications with "Group Now" / "Ignore" buttons
+- Wires "Group Now" to `startOrganize()` from organize handler
+
+**Lines Changed:** ~65 lines added
+
+---
+
+#### 4. `src/background/messages/organize.ts`
+**Changes:**
+- Exported new `startOrganize()` function for programmatic use
+- Allows background script to trigger organize flow
+- Validates settings before starting
+- Uses same task pipeline as popup-triggered organize
+- Prevents duplicate tasks
+
+**Lines Changed:** ~20 lines added
+
+---
+
+#### 5. `package.json`
+**Changes:**
+- Added `notifications` permission to manifest
+- Required for tab grouping prompt notifications
+
+**Lines Changed:** 2 lines modified
+
+---
+
+#### 6. `README.md`
+**Changes:**
+- Added Model Presets to Features section
+- Added Quick Settings Access to Features
+- Added Longer Debug Visibility to Features
+- Added Prompt on New Tabs to Features
+- Updated Configuration section with Model Preset info
+- Updated Usage section with notification workflow
+- Added Permissions section explaining notifications use
+- Added Compatibility Notes section
+- Updated Recent Improvements with latest enhancements
+
+**Lines Changed:** ~25 lines added
+
+---
+
+#### 7. `CHANGELOG.md`
+**Changes:**
+- Added "[Enhanced UI & Notifications] - 2026-01-11" entry
+- Documented Model Presets Dropdown with 30+ models
+- Documented New Tab Grouping Notifications feature
+- Documented Quick Settings Access button
+- Documented Popup UI Enhancements
+- Documented Debug Log Behavior improvements
+- Documented Permissions changes
+- Documented Technical implementation details
+
+**Lines Changed:** ~70 lines added
+
+---
+
+## Previous Session (2026-01-10)
+
+### Modified Files (6)
 
 ### 1. `src/lib/storage.ts`
 **Changes:**

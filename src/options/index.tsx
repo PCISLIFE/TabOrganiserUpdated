@@ -42,11 +42,38 @@ const API_PRESETS = {
 type PresetKey = keyof typeof API_PRESETS
 // Model-only presets (does not change API endpoint)
 const MODEL_PRESETS = {
+  // OpenAI GPT-5 series (latest, Jan 2026)
+  "OpenAI • GPT-5.2": "gpt-5.2",
+  "OpenAI • GPT-5.2 Pro": "gpt-5.2-pro",
+  "OpenAI • GPT-5": "gpt-5",
+  "OpenAI • GPT-5 Mini": "gpt-5-mini",
+  "OpenAI • GPT-5 Nano": "gpt-5-nano",
+  // OpenAI GPT-4 series
+  "OpenAI • GPT-4.1": "gpt-4.1",
   "OpenAI • GPT-4o": "gpt-4o",
-  "OpenAI • o3-mini-high": "o3-mini-high",
-  "Anthropic • Claude 3.7 Sonnet": "anthropic/claude-3-7-sonnet",
-  "X.AI • Grok-2": "x-ai/grok-2",
+  "OpenAI • GPT-4o Mini": "gpt-4o-mini",
+  // OpenAI reasoning models
+  "OpenAI • o3": "o3",
+  "OpenAI • o3 Pro": "o3-pro",
+  "OpenAI • o4 Mini": "o4-mini",
+  "OpenAI • o3 Mini": "o3-mini",
+  // Google Gemini 3 series (latest, Jan 2026)
+  "Google • Gemini 3 Pro": "google/gemini-3-pro",
+  "Google • Gemini 3 Flash": "google/gemini-3-flash",
+  // Google Gemini 2.5 series
+  "Google • Gemini 2.5 Pro": "google/gemini-2.5-pro",
+  "Google • Gemini 2.5 Flash": "google/gemini-2.5-flash",
+  "Google • Gemini 2.5 Flash Lite": "google/gemini-2.5-flash-lite",
+  // Google Gemini 2.0 series
+  "Google • Gemini 2.0 Flash": "google/gemini-2.0-flash",
   "Google • Gemini 2.0 (free)": "google/gemini-2.0-pro-exp-02:free",
+  // Anthropic Claude
+  "Anthropic • Claude 3.7 Sonnet": "anthropic/claude-3-7-sonnet",
+  "Anthropic • Claude Sonnet 4.5": "anthropic/claude-sonnet-4.5",
+  // X.AI
+  "X.AI • Grok 4.1 Fast": "x-ai/grok-4.1-fast",
+  "X.AI • Grok 2": "x-ai/grok-2",
+  // Local providers
   "Ollama • Llama 3.2": "llama3.2",
   "LM Studio • Local": "local-model"
 } as const
