@@ -143,3 +143,20 @@ const handler: PlasmoMessaging.MessageHandler<OrganizeRequest, OrganizeResponse>
 }
 
 export default handler
+
+// Allow programmatic organize from background (e.g., notifications)
+export async function startOrganize(): Promise<void> {
+  if (await isRunning()) {
+    return
+  }
+
+  const settings = await getSettings()
+  const validation = validateSettings(settings)
+  if (!validation.valid) {
+    await failTask(validation.error || "Please configure API settings in the extension options")
+    return
+  }
+
+  const abortController = await startTask()
+  executeOrganizeTask(settings, abortController.signal)
+}
