@@ -9,6 +9,9 @@ chrome.notifications.getPermissionLevel((level) => {
 	console.log('[Tab Organizer] Notification permission level:', level)
 })
 
+// Notification icon - replace this data URL with your custom icon
+const NOTIFICATION_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+
 // Prompt user to group when new tabs open or navigate to a new URL
 const PROMPT_COOLDOWN_MS = 10000
 let lastPromptAt = 0
@@ -61,14 +64,11 @@ async function maybePromptForTab(tabId: number, url?: string) {
 	console.log(`[Tab Organizer] Creating notification for: ${hostname}`)
 
 	try {
-		// Use a simple 1x1 transparent PNG data URL
-		const iconDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
-		
 		await chrome.notifications.create(notificationId, {
 			type: "basic",
 			title: "Group this tab?",
 			message: hostname,
-			iconUrl: iconDataUrl,
+			iconUrl: NOTIFICATION_ICON,
 			buttons: [
 				{ title: "Group Now" },
 				{ title: "Ignore" }

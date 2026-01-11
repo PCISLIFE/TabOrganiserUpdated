@@ -157,6 +157,27 @@ export async function startOrganize(): Promise<void> {
     return
   }
 
+  // Show "Regrouping..." notification
+  const NOTIFICATION_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+  const regroupNotificationId = `regrouping-${Date.now()}`
+  
+  try {
+    await chrome.notifications.create(regroupNotificationId, {
+      type: "basic",
+      title: "Tab Organizer",
+      message: "Regrouping your tabs...",
+      iconUrl: NOTIFICATION_ICON,
+      priority: 1
+    })
+    
+    // Auto-dismiss after task completes (we'll clear it when done)
+    setTimeout(() => {
+      chrome.notifications.clear(regroupNotificationId)
+    }, 3000)
+  } catch (error) {
+    console.error('[Tab Organizer] Failed to show regrouping notification:', error)
+  }
+
   const abortController = await startTask()
   executeOrganizeTask(settings, abortController.signal)
 }
